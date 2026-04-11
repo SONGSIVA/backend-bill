@@ -1,22 +1,21 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from database import engine
 import models
 from routers import items, customers, bills, settings
 
+# Create all DB tables on startup
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="BillEase API",
-    description="GST Billing System",
+    description="GST Billing System — Items, Customers, Invoices and Settings",
     version="1.1.0",
 )
 
-# CORS — read from environment variable
-# Set ALLOWED_ORIGINS in Koyeb dashboard after frontend deploy
+# CORS — reads from ALLOWED_ORIGINS environment variable
+# Set this in Render dashboard after Vercel deploy
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
 origins = ["*"] if allowed_origins_env == "*" else [
     o.strip() for o in allowed_origins_env.split(",")
@@ -30,18 +29,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── API routes ────────────────────────────────────────────────
 app.include_router(items.router)
 app.include_router(customers.router)
 app.include_router(bills.router)
 app.include_router(settings.router)
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
-
 @app.get("/")
 def root():
     return {"message": "BillEase API is running", "docs": "/docs"}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

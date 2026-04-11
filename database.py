@@ -11,11 +11,15 @@ DATABASE_URL = os.getenv(
     "postgresql://postgres:postgres@localhost:5432/billing_db"
 )
 
-# Fix postgres:// → postgresql:// (some providers use old format)
+# Render provides postgres:// URLs — SQLAlchemy needs postgresql://
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,       # reconnect if DB connection drops
+    pool_recycle=300,         # recycle connections every 5 minutes
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
