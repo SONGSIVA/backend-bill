@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
@@ -22,6 +22,16 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+def ensure_logo_url_column():
+    inspector = inspect(engine)
+    if not inspector.has_table("company_settings"):
+        return
+    existing_columns = [column["name"] for column in inspector.get_columns("company_settings")]
+    if "logo_url" not in existing_columns:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE company_settings ADD COLUMN IF NOT EXISTS logo_url VARCHAR(300);"))
 
 
 def get_db():

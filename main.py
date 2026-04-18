@@ -1,12 +1,20 @@
 import os
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from database import engine
 import models
 from routers import items, customers, bills, settings
 
+BASE_DIR = Path(__file__).resolve().parent
+LOGO_DIR = BASE_DIR / "static" / "logos"
+LOGO_DIR.mkdir(parents=True, exist_ok=True)
+
 # Create all DB tables on startup
 models.Base.metadata.create_all(bind=engine)
+from database import ensure_logo_url_column
+ensure_logo_url_column()
 
 app = FastAPI(
     title="BillEase API",
@@ -33,6 +41,8 @@ app.include_router(items.router)
 app.include_router(customers.router)
 app.include_router(bills.router)
 app.include_router(settings.router)
+
+app.mount("/logos", StaticFiles(directory=str(LOGO_DIR)), name="logos")
 
 
 @app.get("/")

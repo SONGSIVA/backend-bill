@@ -20,6 +20,7 @@ class CompanySettings(Base):
     bank_name = Column(String(200), nullable=True)
     bank_account = Column(String(50), nullable=True)
     bank_ifsc = Column(String(20), nullable=True)
+    logo_url = Column(String(300), nullable=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
 
